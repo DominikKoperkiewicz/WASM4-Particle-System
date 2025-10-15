@@ -4,7 +4,6 @@ import {Camera} from "./Camera";
 import {PARTICLE_POOL_SIZE, ParticleSettings, ParticleSystem, TYPE_LINE, TYPE_OVAL, TYPE_RECT} from "./ParticleSystem";
 import {CameraNavigator} from "./CameraNavigator";
 import {Mouse} from "./Mouse";
-import {trace} from "./wasm4";
 
 const TAB_NAMES = [
     "PARTICLE SETTINGS 1",
@@ -15,7 +14,7 @@ const TAB_NAMES = [
 const INSPECTOR_HEIGHT: i16 = 160 - 80;
 
 const tabNumber: u32 = 3;
-const particleSettings: ParticleSettings = new ParticleSettings(4, 2, -0.08, 0.0, 6.283, 0.085, 0.3, 0.1, 0.02,0.0, 60, TYPE_LINE);
+const particleSettings: ParticleSettings = new ParticleSettings(4, 2, -0.08, 0.0, 6.283, 0.085, 0.3, 0.1, 0.02,0.0, 60,0x33, TYPE_LINE);
 
 let time: u32 = 0;
 let inspectorY: i16 = INSPECTOR_HEIGHT+4;
@@ -219,8 +218,17 @@ function ExportParticleSettings(settings: ParticleSettings): void {
     if (settings.renderer == TYPE_LINE) {
         pType = "TYPE_LINE";
     }
+    const output: string = `const myParticle: ParticleSettings = new ParticleSettings(${settings.size}, ${settings.sizeVariance}, ${settings.speedChange}, ${settings.direction}, ${settings.directionVariance}, ${settings.directionChange}, ${settings.speed}, ${settings.speedVariance}, ${settings.speedChange}, ${settings.gravity}, ${settings.lifetime}, ${pType});\n\n`;
 
-    w4.trace(`const myParticle: ParticleSettings = new ParticleSettings(${settings.size}, ${settings.sizeVariance}, ${settings.speedChange}, ${settings.direction}, ${settings.directionVariance}, ${settings.directionChange}, ${settings.speed}, ${settings.speedVariance}, ${settings.speedChange}, ${settings.gravity}, ${settings.lifetime}, ${pType});`);
+    w4.trace(output);
+
+    const dataLength: i32 = 1000;
+    let ptr: usize = memory.data( sizeof<u8>() * dataLength);
+
+    for (let i = 0; i < dataLength; i++) {
+        store<u8>(ptr + i * sizeof<u8>(), output.charCodeAt(i));
+    }
+    w4.diskw(ptr, sizeof<u8>() * dataLength);
 }
 
 function Swap<T>(a: T, b: T): void {
