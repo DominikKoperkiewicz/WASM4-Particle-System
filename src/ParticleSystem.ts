@@ -9,8 +9,10 @@ abstract class ParticleRenderer {
     abstract draw(particle: Particle): void;
 }
 
-class RectRenderer extends ParticleRenderer {
+export class RectRenderer extends ParticleRenderer {
     draw(particle: Particle): void {
+
+        store<u16>(w4.DRAW_COLORS, particle.settings.color);
         const halfSize: f32 = particle.size * 0.5;
         const scale: u32 = <u32>(particle.size * Camera.zoom);
 
@@ -18,8 +20,10 @@ class RectRenderer extends ParticleRenderer {
     }
 }
 
-class OvalRenderer extends ParticleRenderer {
+export class OvalRenderer extends ParticleRenderer {
     draw(particle: Particle): void {
+
+        store<u16>(w4.DRAW_COLORS, particle.settings.color);
         const halfSize: f32 = particle.size * 0.5;
         const scale: u32 = <u32>(particle.size * Camera.zoom);
 
@@ -27,9 +31,10 @@ class OvalRenderer extends ParticleRenderer {
     }
 }
 
-class LineRenderer extends ParticleRenderer {
+export class LineRenderer extends ParticleRenderer {
     draw(particle: Particle): void {
 
+        store<u16>(w4.DRAW_COLORS, particle.settings.color);
         const x = <i32>((particle.x - Camera.x) * Camera.zoom);
         const y = <i32>((particle.y - Camera.y) * Camera.zoom);
 
@@ -54,11 +59,12 @@ export class ParticleSettings {
     speedChange: f32;
 
     gravity: f32;
-
     lifetime: u16
+
+    color: u16;
     renderer: ParticleRenderer;
 
-    constructor(size: u8, sizeVariance: u8, sizeChange: f32, direction: f32, directionVariance: f32, directionChange: f32, speed: f32, speedVariance: f32, speedChange: f32, gravity: f32, lifetime: u16, particleDrawer: ParticleRenderer) {
+    constructor(size: u8, sizeVariance: u8, sizeChange: f32, direction: f32, directionVariance: f32, directionChange: f32, speed: f32, speedVariance: f32, speedChange: f32, gravity: f32, lifetime: u16, color: u16, particleDrawer: ParticleRenderer) {
         this.size = size;
         this.sizeVariance = sizeVariance;
         this.sizeChange = sizeChange;
@@ -70,13 +76,15 @@ export class ParticleSettings {
         this.speedChange = speedChange;
         this.gravity = gravity;
         this.lifetime = lifetime;
+
+        this.color = color;
         this.renderer = particleDrawer;
     }
 }
 
-const defaultParticleSettings: ParticleSettings = new ParticleSettings(3, 0, 0.0, 0.0, 6.283, 0, 1.0, 0.0, 0.0, 0.0,40, TYPE_RECT);
+export const defaultParticleSettings: ParticleSettings = new ParticleSettings(3, 0, 0.0, 0.0, 6.283, 0, 1.0, 0.0, 0.0, 0.0,40, 0x33, TYPE_RECT);
 
-class Particle {
+export class Particle {
     x: f32;
     y: f32;
     size: f32;
