@@ -8,7 +8,7 @@ import {Mouse} from "./Mouse";
 const TAB_NAMES = [
     "PARTICLE SETTINGS 1",
     "PARTICLE SETTINGS 2",
-    "COLOR SETTINGS",
+    "SETTINGS",
 ]
 
 const INSPECTOR_HEIGHT: i16 = 160 - 80;
@@ -20,6 +20,7 @@ let time: u32 = 0;
 let inspectorY: i16 = INSPECTOR_HEIGHT+4;
 let openTab: i32 = 0;
 let gamepadPrevious: u8 = load<u8>(w4.GAMEPAD1);
+let exportNotificationTimer: u8 = 100;
 
 let emitterOn: boolean = true;
 let emitterX1: f32 = 80;
@@ -35,7 +36,7 @@ const resetCameraButton: UI.Button =  new UI.Button( 121, -19, "RESET CAM", 0); 
 
 const tabButtons: Array<UI.Button> = new Array<UI.Button>();
 for(let i: u32 = 0; i < tabNumber; i++) {
-    tabButtons.push(new UI.Button(<i16>(i * 8 + 2), -19, (i).toString(), 0));
+    tabButtons.push(new UI.Button(<i16>(i * 8 + 2), -19, (i+1).toString(), 0));
     inspector.elements.push(tabButtons[i]);
 }
 const tabLabel: UI.Text = new UI.Text(2, -25, TAB_NAMES[0], false);  inspector.elements.push(tabLabel);
@@ -68,6 +69,7 @@ const frequencySlider: UI.Slider = new UI.Slider(86, 10, "Freq.", 70, 1, 60, 60.
 const typeSlider: UI.Slider = new UI.Slider(86, 28, "Type", 70, 1, 3, 1, 1); secondParticleTab.elements.push(typeSlider);
 
 const emitterOnOffButton: UI.Button = new UI.Button( 86, 44, "Emitter On ", 1); secondParticleTab.elements.push(emitterOnOffButton);
+const randomizeButton: UI.Button = new UI.Button( 86, 61, "Randomize", 1); secondParticleTab.elements.push(randomizeButton);
 // COLOR TAB SETUP
 
 const colorsTab: UI.Window = new UI.Window(0, 0, 0, 0, 0x00); inspector.elements.push(colorsTab);
@@ -229,12 +231,37 @@ function ExportParticleSettings(settings: ParticleSettings): void {
         store<u8>(ptr + i * sizeof<u8>(), output.charCodeAt(i));
     }
     w4.diskw(ptr, sizeof<u8>() * dataLength);
+
+    exportNotificationTimer = 0;
 }
 
 function Swap<T>(a: T, b: T): void {
     const t: T = a;
     a = b;
     b = t;
+}
+
+function RandomizeSliderValue(slider: UI.Slider, scale: f32): void {
+    slider.value = (slider.max - slider.min) * Mathf.random() + slider.min;
+    slider.value = <f32>Math.round(slider.value / slider.step) * slider.step;
+    slider.value = slider.value * scale;
+}
+
+function RandomizeParticleSettings(): void {
+    RandomizeSliderValue(sizeSlider, 0.8);
+    RandomizeSliderValue(sizeVarianceSlider, 0.8);
+    RandomizeSliderValue(sizeChangeSlider, 0.5);
+    RandomizeSliderValue(directionSlider, 1.0);
+    RandomizeSliderValue(directionVarianceSlider, 1.0);
+    RandomizeSliderValue(directionChangeSlider, 0.5);
+    RandomizeSliderValue(speedSlider, 0.6);
+    RandomizeSliderValue(speedVarianceSlider, 0.6);
+    RandomizeSliderValue(speedChangeSlider, 0.2);
+    RandomizeSliderValue(gravitySlider, 0.5);
+    RandomizeSliderValue(typeSlider, 1.0);
+
+    // RandomizeSliderValue(lifetimeSlider);
+    // RandomizeSliderValue(frequencySlider);
 }
 
 function GeneralSetup(): void {
@@ -264,6 +291,11 @@ export function update (): void {
         if(element.isPressed) { OpenTab(index); }
     });
 
+    if (exportNotificationTimer < 70) {
+        exportNotificationTimer++;
+        UI.Text.write("FILE EXPORTED", 62, 134-exportNotificationTimer / 8, 0x40);
+    }
+
 
 
     if (time % <i32>(60.0 / frequencySlider.value) == 0) {
@@ -292,6 +324,9 @@ export function update (): void {
     }
     if (emitterOnOffButton.isPressed) {
         TurnEmitter();
+    }
+    if (randomizeButton.isPressed) {
+        RandomizeParticleSettings();
     }
 
     const gamepad = load<u8>(w4.GAMEPAD1);
