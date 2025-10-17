@@ -16,7 +16,7 @@ export class CameraNavigator {
     static grabX: i16 = 0;
     static grabY: i16 = 0;
 
-    static update(drawCross: boolean, drawInfo: boolean): void {
+    static update(drawCross: boolean = false, drawInfo: boolean = false): void {
 
         if (drawCross) {
             store<u16>(w4.DRAW_COLORS, 0x04);
