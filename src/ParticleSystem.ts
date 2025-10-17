@@ -112,6 +112,12 @@ export class Particle {
     }
 
     public update(): void {
+
+        if(this.lifetime < 1 || this.size < 0.0 && this.settings.sizeChange < 0) {
+            this.enabled = false;
+            return;
+        }
+
         const deltaX: f32 = Mathf.cos(this.direction) * this.speed;
         const deltaY: f32 = Mathf.sin(this.direction) * this.speed;
         const deltaGravY: f32 = deltaY + this.settings.gravity;
